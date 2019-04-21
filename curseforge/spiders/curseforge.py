@@ -3,17 +3,15 @@ from scrapy import Spider, Request
 
 class CurseforgeSpider(Spider):
     name = 'curseforge'
+    project_relations = {
+        'Modpacks': "dependencies",
+        'Mods': "dependents",
+    }
 
     def parse_project_page(self, response):
-        relations_url = f"./{self.project_name}/relations/"
-
-        if self.relations == 'dependencies':
-            relations_url += "dependencies"
-        elif self.relations == 'include':
-            relations_url += "dependents?filter-related-dependents=6"
-        else:
-            raise ValueError
-
+        project_type = response.css("h2.RootGameCategory a::text").get()
+        relations = CurseforgeSpider.project_relations[project_type]
+        relations_url = f"./{self.project_name}/relations/{relations}?filter-related-{relations}=6"
         yield response.follow(relations_url, self.parse)
 
     def start_requests(self):
