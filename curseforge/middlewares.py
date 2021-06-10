@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-
 # Define here the models for your spider middleware
 #
 # See documentation in:
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-
+import undetected_chromedriver.v2
 from scrapy import signals
+from scrapy.http import HtmlResponse
+
+driver = undetected_chromedriver.v2.Chrome()
 
 
 class CurseforgeSpiderMiddleware(object):
@@ -78,7 +80,14 @@ class CurseforgeDownloaderMiddleware(object):
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        return None
+        with driver:
+            driver.get(request.url)
+        return HtmlResponse(
+            driver.current_url,
+            body=driver.page_source,
+            encoding="utf-8",
+            request=request,
+        )
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
